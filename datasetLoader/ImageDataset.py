@@ -162,8 +162,12 @@ def _unison_shuffled_copies_n(list_of_arrays):
 
     return ret
 
-
 class ImageDataset:
+    # load and manage an image dataset.
+    # Can save to hdf5 file and load from a saved hdf5 file, numpy arrays, and folder containing folders.
+    # Manage data, labels, label names (and file names).
+    # Can save the content again in image files format.
+    # TODO: not all methods are tested (in particular loadSingleImage and loadImagesFolder).
 
     def __init__(self):
         self.__resetState()
@@ -171,12 +175,12 @@ class ImageDataset:
     def __resetState(self):
         self.__setState(None, None, None, None, None)
 
-    def __setState(self, dataset, labelset, filenames, labelmap=None, secondary_label=None):
+    def __setState(self, dataset, labelset, filenames, labelmap=None):
         self.data = np.asarray(dataset) if dataset is not None else None
         self.labels = np.asarray(labelset) if labelset is not None else None   # labels[data_index]  = label_vector (numpy, [ 0, ... ,0, 1, 0, ... , 0]
         self.fnames = np.asarray(filenames) if filenames is not None else None  # labelmap[label_int] = label_name
         self.labelmap = np.asarray(labelmap) if labelmap is not None else None
-        self.second_labels = np.asarray(secondary_label) if secondary_label is not None else None
+        #self.second_labels = np.asarray(secondary_label) if secondary_label is not None else None
 
 
     def getLabelVec(self, data_index):
@@ -280,25 +284,25 @@ class ImageDataset:
             _unison_shuffled_copies_n([self.data, self.labels, self.fnames, self.second_labels])
 
 
-    def loadSingleImage(self, img_path, labelname=None, labelvec=None, second_label_name=None, second_label_vec=None,
+    def loadSingleImage(self, img_path, labelname=None, labelvec=None, second_label_name=None,
                         crop_size=None, img_size=None, color_mode="rgb"):
         data = loadImageList([img_path], img_size, crop_size, color_mode)
         labels = None
         filenames= None
         label_names = None
-        second_labels = None
+        # second_labels = None
 
         nlabels = -1
         if labelvec is not None:
             labels = [labelvec]
             nlabels = len(labelvec)
 
-        if second_label_vec is not None:
-            second_labels = [second_label_vec]
-            if nlabels is -1:
-                nlabels = len(second_label_vec)
-            elif len(second_label_vec) is not nlabels:
-                raise ValueError("Label and secondary label must be two vectors of the same dimension")
+        # if second_label_vec is not None:
+        #     second_labels = [second_label_vec]
+        #     if nlabels is -1:
+        #         nlabels = len(second_label_vec)
+        #     elif len(second_label_vec) is not nlabels:
+        #         raise ValueError("Label and secondary label must be two vectors of the same dimension")
 
         if nlabels is not -1:
             label_names = []
@@ -311,7 +315,7 @@ class ImageDataset:
                 label_names[self.labelVecToInt(second_label_vec)] = second_label_name
 
         filenames = [ _path_leaf(img_path) ]
-        self.__setState(data, labels, filenames, label_names, second_labels)
+        self.__setState(data, labels, filenames, label_names)
 
 
     # TODO: AGGIUNGI QUA UN FLAG PER LEGGERE DOPPIE LABEL (datasetpath/noisy_label/true_label/imgs.jpg)

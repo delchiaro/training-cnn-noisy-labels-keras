@@ -1,6 +1,9 @@
 
 
+
 class VGG16Layers:
+    # Simple container for all the layer names in the vgg-16 model.
+    # NB: changing the layer string names will cause problem when loading the pretrained weights from the HDF5 file.
 
     input = 'input'
     conv1a = 'conv1_1'

@@ -1,3 +1,10 @@
+# Command line application (and python function) that can compute the output of a trained vgg16 network over an images
+# dataset (organized as ./path/to/dataset/label/images.jpg or as ./path/to/dataset/images.jpg) or hdf5 dataset
+# (see ImageDataset.saveToHDF5()) in a specific vgg16 layer.
+# The computed output can be saved into an HDF5 file or as images in another folder.
+# Refactoring of vgg16out.py
+
+
 import os
 from argparse import ArgumentParser
 

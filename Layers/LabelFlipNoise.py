@@ -31,12 +31,13 @@ def tf_trace(x):
 
 
 class TraceRegularizer(Regularizer):
-    """Regularizer for L1 and L2 regularization.
-
+    """Regularizer to make trace of the weight matrix small
     # Arguments
         l1: Float; L1 regularization factor.
         l2: Float; L2 regularization factor.
     """
+
+    # TODO: TEST
 
     def __init__(self, alpha):
         self.alpha = K.cast_to_floatx(alpha)
@@ -87,12 +88,12 @@ class LabelFlipNoise(Dense):
     #
     # @Layer.trainable_weights.setter
     # def trainable_weights(self, weights):
-    #     # TODO: transpose before transforming to stocMat?
+    #     # transpose before transforming to stocMat? NO! MADE BY W_CONSTRAINT
     #     weights = matToStocMat(weights)  # we transform the matrix of weights in a stochastic matrix
     #     Layer.trainable_weights(self, weights)
     #
     # def set_weights(self, weights):
-    #     # TODO: transpose before transforming to stocMat?
+    #     # transpose before transforming to stocMat? NO! MADE BY W_CONSTRAINT
     #     weights = matToStocMat(weights)  # we transform the matrix of weights in a stochastic matrix
     #     Dense.set_weights(self, weights)
 
@@ -120,7 +121,7 @@ class LabelFlipNoise(Dense):
 
 
 class Stochastic(Constraint):
-    """Constrains the weights incident to each hidden unit to have unit norm.
+    """Constrains the weights incident to each hidden unit to be non negative and to have unit norm.
 
     # Arguments
         axis: integer, axis along which to calculate weight norms.
@@ -156,7 +157,7 @@ class Stochastic(Constraint):
 
 
 class UnitNormNonNeg(Constraint):
-    """Constrains the weights incident to each hidden unit to have unit norm.
+    """Constrains the weights incident to each hidden unit to be non negative and to have unit norm.
 
     # Arguments
         axis: integer, axis along which to calculate weight norms.

@@ -15,6 +15,13 @@ from nets.vgg16 import VGG16Layers
 
 
 class VGG16Builder:
+    # helper class to build vgg16 network.
+    # Not a real need (we could simply use the methods of keras class 'Model' for loading model from json and weights
+    # from hdf5) but has been built to fastly change the output layer and build keras Sequential submodel of VGG-16
+    # (loading model from json and selecting a sublayer calling the constructor as
+    # "submodel = Model(input=model.input, output=model.get_layer(vgg16_last_layer).output)"
+    # will give an instance of the Model class, not Sequential).
+
     def __init__(self):
         pass
 
