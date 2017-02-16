@@ -249,16 +249,16 @@ class VGG16Builder:
 
     @deprecated
     @staticmethod
-    def emptyModel_byIndex(vgg16_last_layer=VGG16LayerBlock.sm):
-        # type: (VGG16LayerBlock, VGG16LayerBlock) -> Model
+    def emptyModel_byBlock(vgg16_last_layer=VGG16LayerBlock.sm):
+        # type: (VGG16LayerBlock) -> Model
         return VGG16Builder.emptyModel(VGG16Builder.outputBlockToLayer(vgg16_last_layer))
 
     @deprecated
     @staticmethod
     def pretrainedModel_byBlock(vgg16_weight_path, last_layer_block=VGG16LayerBlock.sm):
-        # type: (str, VGG16LayerBlock, VGG16LayerBlock) -> Sequential
+        # type: (str, VGG16LayerBlock) -> Model
         weights = VGG16Builder._loadWeights(vgg16_weight_path)
-        model = VGG16Builder.emptyModel_byIndex(last_layer_block)
+        model = VGG16Builder.emptyModel_byBlock(last_layer_block)
         model.load_weights_from_hdf5_group_by_name(weights)
         return model
 

@@ -10,7 +10,7 @@ import numpy as np
 DEFAULT_EXTENSIONS=[".jpg", ".jpeg", ".png", ".gif", ".bmp"]
 DATA_DATASET_NAME= 'data'
 LABELS_DATASET_NAME= 'labels'
-SECONDARY_LABEL_DATASET_NAME= 'secondary_labels'
+# SECONDARY_LABEL_DATASET_NAME= 'secondary_labels'
 
 LABELS_MAP_NAME= 'labels_map'
 FILENAMES_DATASET_NAME= 'file_names'
@@ -168,12 +168,12 @@ class ImageDataset:
     # Manage data, labels, label names (and file names).
     # Can save the content again in image files format.
     # TODO: not all methods are tested (in particular loadSingleImage and loadImagesFolder).
-
+    # TODO: second label never implemented completely, not useful for now, for this reason has been commented.
     def __init__(self):
         self.__resetState()
 
     def __resetState(self):
-        self.__setState(None, None, None, None, None)
+        self.__setState(None, None, None, None)
 
     def __setState(self, dataset, labelset, filenames, labelmap=None):
         self.data = np.asarray(dataset) if dataset is not None else None
@@ -196,18 +196,18 @@ class ImageDataset:
     def getLabelStr(self, data_index):
         return self.labelIntToStr(self.getLabelInt(data_index))
 
-    def getSecondLabelVec(self, data_index):
-        if self.labels is not None:
-            return self.second_labels[data_index]
-        else: return None
-
-    def getSecondLabelInt(self, data_index):
-        if self.labels is not None:
-            return self.labelVecToInt(self.getSecondLabelVec(data_index))
-        else: return None
-
-    def getSecondLabelStr(self, data_index):
-        return self.labelIntToStr(self.getSecondLabelInt(data_index))
+    # def getSecondLabelVec(self, data_index):
+    #     if self.labels is not None:
+    #         return self.second_labels[data_index]
+    #     else: return None
+    #
+    # def getSecondLabelInt(self, data_index):
+    #     if self.labels is not None:
+    #         return self.labelVecToInt(self.getSecondLabelVec(data_index))
+    #     else: return None
+    #
+    # def getSecondLabelStr(self, data_index):
+    #     return self.labelIntToStr(self.getSecondLabelInt(data_index))
 
 
 
@@ -261,30 +261,29 @@ class ImageDataset:
             label_list.append(self.labelVecToStr(l))
         return np.asarray(label_list)
 
-    def getSecondLabelsInt(self):
-        return np.argmax(self.second_labels, axis=1)
-        # label_list = []
-        # for l in self.labels:
-        #     label_list.append( self.labelVecToInt(l) )
-        # return np.asarray(label_list)
-
-    def getSecondLabelsVec(self):
-        return self.second_labels
-
-    def getSecondLabelsStr(self):
-        label_list = []
-        for l in self.second_labels:
-            label_list.append(self.labelVecToStr(l))
-        return np.asarray(label_list)
+    # def getSecondLabelsInt(self):
+    #     return np.argmax(self.second_labels, axis=1)
+    #     # label_list = []
+    #     # for l in self.labels:
+    #     #     label_list.append( self.labelVecToInt(l) )
+    #     # return np.asarray(label_list)
+    #
+    # def getSecondLabelsVec(self):
+    #     return self.second_labels
+    #
+    # def getSecondLabelsStr(self):
+    #     label_list = []
+    #     for l in self.second_labels:
+    #         label_list.append(self.labelVecToStr(l))
+    #     return np.asarray(label_list)
 
 
 
     def shuffle(self):
-        [self.data, self.labels, self.fnames, self.second_labels] = \
-            _unison_shuffled_copies_n([self.data, self.labels, self.fnames, self.second_labels])
+        [self.data, self.labels, self.fnames] = _unison_shuffled_copies_n([self.data, self.labels, self.fnames])
 
 
-    def loadSingleImage(self, img_path, labelname=None, labelvec=None, second_label_name=None,
+    def loadSingleImage(self, img_path, labelname=None, labelvec=None,
                         crop_size=None, img_size=None, color_mode="rgb"):
         data = loadImageList([img_path], img_size, crop_size, color_mode)
         labels = None
@@ -311,8 +310,8 @@ class ImageDataset:
 
             if labelname is not None and nlabels is not -1:
                 label_names[self.labelVecToInt(labelvec)] = labelname
-            if second_label_name is not None and nlabels is not -1:
-                label_names[self.labelVecToInt(second_label_vec)] = second_label_name
+            # if second_label_name is not None and nlabels is not -1:
+            #     label_names[self.labelVecToInt(second_label_vec)] = second_label_name
 
         filenames = [ _path_leaf(img_path) ]
         self.__setState(data, labels, filenames, label_names)
@@ -334,8 +333,8 @@ class ImageDataset:
         self.__setState(dataset, None, fname, None)
 
     def loadImagesDataset(self, dataset_path, max_img_per_label=-1,
-                          crop_size=None, img_size=None,
-                          color_mode="rgb", imgExtensions=DEFAULT_EXTENSIONS, sortFileNames=False):
+                          crop_size=None, img_size=None, outlier_label = None,
+                          color_mode="rgb", imgExtensions=DEFAULT_EXTENSIONS, sortFileNames=True, sortLabelNames=True):
 
         # Load dataset organized as: /dataset/label1/img1
         #
@@ -349,6 +348,7 @@ class ImageDataset:
         #                 img3.jpg
         #
         # ...
+        # Setting outlier_label, this method will search for that label and set as last labe in the label ordering.
 
         from os.path import join
         labels = _listOnlyDirs(dataset_path)
@@ -357,6 +357,19 @@ class ImageDataset:
         dataset = np.zeros([0, 3, crop_size[0], crop_size[1]])  #[index,  channels, pixel_y, pixel_x] # TODO: infert crop_size[0] and 1?
         labelset = np.zeros([0, len(labels)])  # [index,   softmax_label]
         i=0
+        labels.sort()
+
+        if outlier_label is not None:
+            outlier_label_found = False
+            newlabels = []
+            for l in labels:
+                if l == outlier_label:
+                    outlier_label_found = True
+                else:
+                    newlabels.append(l)
+            if outlier_label_found:
+                newlabels.append(outlier_label)
+
         for l in labels:
             [d, fname] = loadImageFolder(path=join(dataset_path, l), max_imgs=max_img_per_label,
                                          crop_size=crop_size, img_size=img_size,

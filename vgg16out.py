@@ -32,7 +32,8 @@ def vgg16out(img_dataset_path,
              max_images_per_label=-1,
              hdf5_out_path='dataset_output.h5',
              img_out_path=None,
-             shuffleBeforeSave=False):
+             shuffleBeforeSave=False,
+             outlier_label_name=None):
     netbuilder = VGG16Builder()
     if output_block != None:
         output_layer = netbuilder.outputBlockToLayer(output_block)
@@ -40,16 +41,19 @@ def vgg16out(img_dataset_path,
 
     print("Loading image dataset from selected folder...")
     dataset = ImageDataset()
-    dataset.loadImagesDataset(dataset_path=img_dataset_path, max_img_per_label=max_images_per_label, crop_size=CROP_SIZE, img_size=IMG_SIZE, sortFileNames=True)
+    dataset.loadImagesDataset(dataset_path=img_dataset_path, max_img_per_label=max_images_per_label, crop_size=CROP_SIZE,
+                              img_size=IMG_SIZE, sortFileNames=True, outlier_label=outlier_label_name)
 
+    if output_layer is not VGG16Layers.input:
+        print("Building pretrained network from input to selected layer...")
+        pretrained = netbuilder.pretrainedModel(weights_file, output_layer)
 
-    print("Building pretrained network from input to selected layer...")
-    pretrained = netbuilder.pretrainedModel(weights_file, output_layer)
-
-    print("Compute output of selected layer...")
-    intermediate_output = pretrained.predict(dataset.data)
-    # dataset.data=intermediate_output # unsafe !! (no shape/dimensions check)
-    dataset.loadNumpyArray(intermediate_output, dataset.labels, dataset.fnames, dataset.labelmap )
+        print("Compute output of selected layer (feed forward)...")
+        intermediate_output = pretrained.predict(dataset.data)
+        # dataset.data=intermediate_output # unsafe !! (no shape/dimensions check)
+        dataset.loadNumpyArray(intermediate_output, dataset.labels, dataset.fnames, dataset.labelmap )
+    else:
+        print("Selected output == net input --> skip feed forward.")
 
     if shuffleBeforeSave:
         print("Shuffling dataset...")

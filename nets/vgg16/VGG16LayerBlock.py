@@ -6,13 +6,13 @@ from keras.layers import ZeroPadding2D, Convolution2D, MaxPooling2D, Flatten, De
 from deprecation import deprecated
 
 
-@deprecated
+# enum that represent a block of the vgg-16 network, useful for build vgg-16 submodel:
+# 5 convolutional(relu)-convolutional(relu)-pool layers, 3 fully connected layers, 1 softmax layer.
+# Each block can be converted to the corresponding input/output layer name of that block
+# through the maps '_inputMap' and '_outputMap' in VGG16Builder.
+# This class should be deprecated, instead is better to use the specific layer name.
+
 class VGG16LayerBlock(Enum):
-    # enum that represent a block of the vgg-16 network, useful for build vgg-16 submodel:
-    # 5 convolutional(relu)-convolutional(relu)-pool layers, 3 fully connected layers, 1 softmax layer.
-    # Each block can be converted to the corresponding input/output layer name of that block
-    # through the maps '_inputMap' and '_outputMap' in VGG16Builder.
-    # This class should be deprecated, instead is better to use the specific layer name.
 
     ccp1 = 1 #  3   x 224 x 224 ->  Conv(relu) -> Conv(relu) -> pool  ->    64   x 112 x 112
     ccp2 = 2 #  64  x 112 x 112 ->  Conv(relu) -> Conv(relu) -> pool  ->    128  x 56  x  56

@@ -20,14 +20,16 @@ from keras.regularizers import l2, Regularizer
 #     return mat
 
 
-
-import tensorflow as tf
-import theano as th
 # in future can be added to tensorflow_backend and theano_backend
+
+# import tensorflow as tf
+# def tf_trace(x):
+#     return tf.trace(x)
+
+import theano as th
 def th_trace(x):
     return th.tensor.nlinalg.trace(x)
-def tf_trace(x):
-    return tf.trace(x)
+
 
 
 class TraceRegularizer(Regularizer):
